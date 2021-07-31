@@ -8,7 +8,6 @@ import { Global, css } from '@emotion/react';
 
 // Local components
 import ErrorBoundary from './app/errorboundary/ErrorBoundary';
-import Navigate from './app/navigate/Navigate';
 import HomepageLayout from './app/homepage/Homepage.layout';
 
 const queryClient = new QueryClient();
@@ -27,7 +26,6 @@ const App = () => {
           />
           <QueryClientProvider client={queryClient}>
             <Router>
-              <Navigate />
               <Switch>
                 <Route exact path="/" component={HomepageLayout} />
               </Switch>
