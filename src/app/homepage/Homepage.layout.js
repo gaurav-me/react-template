@@ -12,6 +12,7 @@ utterance.lang = 'en-UK';
 const HomepageLayout = () => {
   const [sentenceIndex, setSentenceIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
+  const [speak, setSpeak] = useState(false);
 
   const sentences = useMemo(
     () =>
@@ -23,26 +24,60 @@ const HomepageLayout = () => {
   );
 
   useEffect(() => {
+    console.log(
+      'in sentenceChange useEffect, sentence: ',
+      sentences[sentenceIndex],
+    );
     utterance.text = sentences[sentenceIndex];
-  }, [sentenceIndex, sentences]);
+    if (speak) {
+      console.log('in speak, going to handleStart');
+      handleStart();
+    }
+  }, [sentenceIndex, sentences, speak]);
 
   useEffect(() => {
     utterance.onpause = (e) => {
-      console.log('e.charIndex on pause', e.charIndex);
       setCharIndex(e.charIndex);
     };
 
     utterance.onend = (e) => {
-      console.log('e.charIndex on end', e.charIndex);
-      if (sentenceIndex + 1 !== sentences.length) {
-        setSentenceIndex((curr) => curr + 1);
-        speechSynthesis.speak(utterance);
+      if (sentenceIndex + 1 < sentences.length) {
+        handleSentenceChange(true);
+      } else {
+        handleEnd();
       }
     };
-  }, []);
+  }, [handleSentenceChange, handleEnd, sentenceIndex, sentences]);
+
+  const handleSentenceChange = (down) => {
+    console.log('in handleSentenceChange');
+    console.log('cancelling speech');
+    speechSynthesis.cancel();
+
+    if (down) {
+      console.log('in down');
+      if (sentenceIndex + 1 < sentences.length) {
+        console.log(
+          'increasing sentenceIndex, old sentenceIndex: ',
+          sentenceIndex,
+        );
+        setSentenceIndex((curr) => curr + 1);
+      }
+    } else {
+      console.log('in down else');
+      if (sentenceIndex - 1 >= 0) {
+        console.log(
+          'decreasing sentenceIndex, old sentenceIndex: ',
+          sentenceIndex,
+        );
+        setSentenceIndex((curr) => curr - 1);
+      }
+    }
+  };
 
   const handleStart = () => {
     console.log('handleStart');
+    setSpeak(true);
     speechSynthesis.speak(utterance);
   };
 
@@ -58,7 +93,8 @@ const HomepageLayout = () => {
 
   const handleEnd = () => {
     console.log('handleEnd');
-    speechSynthesis.end();
+    setSpeak(false);
+    speechSynthesis.cancel();
   };
 
   const handleShiftRight = () => {
@@ -77,7 +113,15 @@ const HomepageLayout = () => {
     }
   };
 
-  const handleSentenceChange = () => {};
+  const handleShiftUp = () => {
+    console.log('handleShiftUp');
+    handleSentenceChange(false);
+  };
+
+  const handleShiftDown = () => {
+    console.log('handleShiftDown');
+    handleSentenceChange(true);
+  };
 
   return (
     <div
@@ -96,10 +140,14 @@ const HomepageLayout = () => {
         Click me
       </div>
       <PullRelease
+        // onShiftRight={() => console.log('righted')}
+        // onShiftLeft={() => console.log('lefted')}
+        // onShiftUp={() => console.log('uped')}
+        // onShiftDown={() => console.log('downed')}
         onShiftRight={handleShiftRight}
         onShiftLeft={handleShiftLeft}
-        // onShiftUp={handleShiftUp}
-        // onShiftDown={handleShiftDown}
+        onShiftUp={handleShiftUp}
+        onShiftDown={handleShiftDown}
       />
     </div>
   );
